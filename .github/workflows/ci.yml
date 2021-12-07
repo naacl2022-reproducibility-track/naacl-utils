@@ -128,7 +128,7 @@ jobs:
         if: always()
         run: |
           . .venv/bin/activate
-          pip uninstall -y my_package
+          pip uninstall -y naacl-utils
 
   release:
     name: Release

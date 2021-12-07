@@ -2,7 +2,7 @@
 
 ## Steps
 
-1. Update the version in `my_package/version.py`.
+1. Update the version in `naacl_utils/version.py`.
 
 3. Run the release script:
 
