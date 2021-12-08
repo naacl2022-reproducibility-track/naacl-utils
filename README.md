@@ -1,6 +1,6 @@
 # NAACL Utils
 
-A command-line interface to help authors submit to the [NAACL Reproducibility Track](https://naacl2022-reproducibility-track.github.io/).
+A command line tool to help authors submit Docker images to the [NAACL Reproducibility Track](https://naacl2022-reproducibility-track.github.io/).
 
 *Requires [Docker](https://www.docker.com/) and Python 3.7 or newer.*
 
