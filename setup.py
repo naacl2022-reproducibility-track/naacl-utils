@@ -44,9 +44,9 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="",
-    url="https://github.com/allenai/naacl-utils",
+    url="https://github.com/naacl2022-reproducibility-track/naacl-utils",
     author="Allen Institute for Artificial Intelligence",
-    author_email="contact@allenai.org",
+    author_email="petew@allenai.org",
     license="Apache",
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"],

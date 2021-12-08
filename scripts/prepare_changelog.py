@@ -27,7 +27,7 @@ def main():
     lines.insert(insert_index, "\n")
     lines.insert(
         insert_index + 1,
-        f"## [v{VERSION}](https://github.com/allenai/naacl-utils/releases/tag/v{VERSION}) - "
+        f"## [v{VERSION}](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v{VERSION}) - "
         f"{datetime.now().strftime('%Y-%m-%d')}\n",
     )
 

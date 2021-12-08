@@ -13,10 +13,10 @@ pip install naacl-utils
 
 ## Installing from source
 
-To install **naacl-utils** from source, first clone [the repository](https://github.com/allenai/naacl-utils):
+To install **naacl-utils** from source, first clone [the repository](https://github.com/naacl2022-reproducibility-track/naacl-utils):
 
 ```bash
-git clone https://github.com/allenai/naacl-utils.git
+git clone https://github.com/naacl2022-reproducibility-track/naacl-utils.git
 cd naacl_utils
 ```
 
