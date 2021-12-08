@@ -1,6 +1,6 @@
 # NAACL Utils
 
-A command-line interface to help authors submit to the NAACL Reproducibility Track.
+A command-line interface to help authors submit to the [NAACL Reproducibility Track](https://naacl2022-reproducibility-track.github.io/).
 
 ## Setup
 
