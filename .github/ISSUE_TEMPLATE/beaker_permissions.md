@@ -1,5 +1,5 @@
 ---
-name: Beaker Org Request
+name: Beaker add request
 about: Request permission to join the NAACL Beaker organization
 title: 'Please add me to the NAACL Beaker organization'
 labels: 'beaker'
