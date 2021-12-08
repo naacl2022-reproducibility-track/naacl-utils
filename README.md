@@ -10,8 +10,10 @@ A command line tool to help authors submit Docker images to the [NAACL Reproduci
 
 #### Create a [Beaker](https://beaker.org) account
 
-The very first thing you'll need to do is create an account on [Beaker.org](https://beaker.org). Then you'll need to provide your username to a NAACL reviewer so that they can add you to the NAACL organization on Beaker.
-Once you've received confirmation that you've been granted access to the NAACL organization, you can proceed to [install and configure naacl-utils](#installing-and-configuring-naacl-utils).
+The very first thing you'll need to do is create an account on [Beaker.org](https://beaker.org).
+Then you'll need to provide your username to a NAACL reviewer so that they can add you to the NAACL organization on Beaker.
+To do that, just open a new [Beaker add request](https://github.com/naacl2022-reproducibility-track/naacl-utils/issues/new?assignees=epwalsh&labels=beaker&template=beaker_permissions.md&title=Please+add+me+to+the+NAACL+Beaker+organization) issue.
+Once you've received confirmation on the issue thread that you've been granted access to the organization, you can proceed to [install and configure naacl-utils](#installing-and-configuring-naacl-utils).
 
 #### Installing Python
 
