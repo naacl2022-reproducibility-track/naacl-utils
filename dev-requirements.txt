@@ -11,23 +11,7 @@ isort==5.10.1
 # Running tests
 pytest
 
-# Allows generation of coverage reports with pytest.
-pytest-cov
-
-# Allows codecov to generate coverage reports
-coverage
-codecov
-
 # Needed for packaging and uploading to PyPi
 twine>=1.11.0
 setuptools
 wheel
-
-# Building docs
-Sphinx==4.3.0
-
-# Sphinx theme: https://sphinx-themes.org/sample-sites/furo/
-furo==2021.11.23
-
-# Lets Sphinx parse markdown files in addition to rst.
-myst-parser==0.15.2
