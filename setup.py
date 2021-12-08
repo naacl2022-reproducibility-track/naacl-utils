@@ -51,6 +51,7 @@ setup(
     packages=find_packages(
         exclude=["*.tests", "*.tests.*", "tests.*", "tests"],
     ),
+    entry_points={"console_scripts": ["naacl-utils=naacl_utils.__main__:main"]},
     install_requires=read_requirements("requirements.txt"),
     extras_require={"dev": read_requirements("dev-requirements.txt")},
     python_requires=">=3.7",
