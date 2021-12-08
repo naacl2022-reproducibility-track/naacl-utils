@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.1.1](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.1.1) - 2021-12-08
+
 ### Fixed
 
 - Fixed bug with saving Beaker config in `setup` command.
