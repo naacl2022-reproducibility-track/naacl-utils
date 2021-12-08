@@ -23,7 +23,7 @@ env:
 jobs:
   checks:
     name: python ${{ matrix.python }} - ${{ matrix.task.name }}
-    runs-on: [ubuntu-latest]
+    runs-on: [ubuntu-latest, windows-latest, macos-latest]
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -65,6 +65,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install prerequisites
+        shell: bash
         run: |
           pip install --upgrade pip setuptools wheel virtualenv
 
@@ -87,6 +88,7 @@ jobs:
 
       - name: Setup virtual environment (no cache hit)
         if: steps.virtualenv-cache.outputs.cache-hit != 'true'
+        shell: bash
         run: |
           test -d .venv || virtualenv -p $(which python) --copies --reset-app-data .venv
           . .venv/bin/activate
@@ -94,11 +96,13 @@ jobs:
 
       - name: Install editable (cache hit)
         if: steps.virtualenv-cache.outputs.cache-hit == 'true'
+        shell: bash
         run: |
           . .venv/bin/activate
           pip install --no-deps -e .[dev]
 
       - name: Show environment info
+        shell: bash
         run: |
           . .venv/bin/activate
           which python
@@ -106,6 +110,7 @@ jobs:
           pip freeze
 
       - name: ${{ matrix.task.name }}
+        shell: bash
         run: |
           . .venv/bin/activate
           ${{ matrix.task.run }}
@@ -119,6 +124,7 @@ jobs:
 
       - name: Clean up
         if: always()
+        shell: bash
         run: |
           . .venv/bin/activate
           pip uninstall -y naacl-utils
