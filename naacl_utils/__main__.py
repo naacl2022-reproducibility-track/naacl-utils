@@ -1,13 +1,13 @@
 from typing import Optional
 
 import click
+from click.parser import split_arg_string
 from click_help_colors import HelpColorsCommand, HelpColorsGroup
 
 from .version import VERSION
 
-# TODO: Change these to NAACL-specific org and cluster.
-BEAKER_ORG = "AI2"
-BEAKER_CLUSTER = "AI2/petew-cpu"
+BEAKER_ORG = "NAACL"
+BEAKER_CLUSTER = "NAACL/server"
 
 
 @click.group(
@@ -72,8 +72,18 @@ def setup():
     context_settings={"max_content_width": 115},
 )
 @click.argument("image", type=str)
-@click.argument("name", type=str)
-def submit(image: str, name: str):
+@click.argument("run_name", type=str)
+@click.option(
+    "--entrypoint",
+    type=str,
+    help="Override the ENTRYPOINT of the Docker image.",
+)
+@click.option(
+    "--cmd",
+    type=str,
+    help="Override the CMD of the Docker image.",
+)
+def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Optional[str] = None):
     """
     Submit a Docker image for your experiment to https://beaker.org.
 
@@ -82,14 +92,14 @@ def submit(image: str, name: str):
         naacl-utils submit hello-world run-1
 
     """
-    from beaker import Beaker, ImageNotFound
+    from beaker import Beaker, ExperimentConflict, ImageNotFound
 
     beaker = Beaker.from_env()
     beaker.config.default_org = BEAKER_ORG
     beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
 
     # Check if image exists on Beaker and create it if it doesn't.
-    beaker_image = image.replace(":", "-")
+    beaker_image = image.replace(":", "-").replace("/", "-")
     try:
         image_data = beaker.get_image(f"{beaker.user}/{beaker_image}")
     except ImageNotFound:
@@ -99,20 +109,33 @@ def submit(image: str, name: str):
         )
 
     # Submit experiment.
-    experiment_data = beaker.create_experiment(
-        name,
-        {
-            "version": "v2-alpha",
-            "tasks": [
-                {
-                    "name": "main",
-                    "image": {"beaker": image_data["id"]},
-                    "context": {"cluster": BEAKER_CLUSTER},
-                    "result": {"path": "/unused"},  # required even if the task produces no output.
-                },
-            ],
-        },
-    )
+    try:
+        experiment_data = beaker.create_experiment(
+            run_name,
+            {
+                "version": "v2-alpha",
+                "tasks": [
+                    {
+                        "name": "main",
+                        "image": {"beaker": image_data["id"]},
+                        "context": {"cluster": BEAKER_CLUSTER},
+                        "result": {
+                            "path": "/unused"
+                        },  # required even if the task produces no output.
+                        "command": None if entrypoint is None else split_arg_string(entrypoint),
+                        "arguments": None if cmd is None else split_arg_string(cmd),
+                        "resources": {
+                            "gpuCount": 1,
+                            "sharedMemory": "1GiB",
+                        },
+                    },
+                ],
+            },
+        )
+    except ExperimentConflict:
+        raise click.ClickException(
+            f"A run with the name '{click.style(run_name, fg='red')}' already exists, try using a different name.",
+        )
     experiment_id = experiment_data["id"]
     click.echo(
         f"Experiment {click.style(experiment_id, fg='blue')} submitted.\n"
