@@ -1,8 +1,11 @@
 from typing import Optional
 
 import click
+import packaging.version
+import requests
 from click.parser import split_arg_string
 from click_help_colors import HelpColorsCommand, HelpColorsGroup
+from requests.exceptions import HTTPError
 
 from .version import VERSION
 
@@ -31,6 +34,23 @@ def main(log_level: Optional[str] = None):
         import logging
 
         logging.basicConfig(level=getattr(logging, log_level.upper()))
+
+    # Ensure that we're running the latest version.
+    try:
+        response = requests.get(
+            "https://api.github.com/repos/naacl2022-reproducibility-track/naacl-utils/releases/latest",
+            timeout=1,
+        )
+        latest_version = packaging.version.parse(response.json()["tag_name"])
+        if latest_version > packaging.version.parse(VERSION):
+            click.secho(
+                f"You're using naacl-utils version {VERSION}, but there is a newer version available ({latest_version}).\n"
+                "Please upgrade with: 'pip install --upgrade naacl-utils'",
+                fg="yellow",
+                err=True,
+            )
+    except HTTPError:
+        pass
 
 
 @main.command(
@@ -92,9 +112,14 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
         naacl-utils submit hello-world run-1
 
     """
-    from beaker import Beaker, ExperimentConflict, ImageNotFound
+    from beaker import Beaker, ConfigurationError, ExperimentConflict, ImageNotFound
 
-    beaker = Beaker.from_env()
+    try:
+        beaker = Beaker.from_env()
+    except ConfigurationError:
+        raise click.ClickException(
+            "Failed to initialize Beaker client, did you forget to run the 'naacl-utils setup' command?",
+        )
     beaker.config.default_org = BEAKER_ORG
     beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
 

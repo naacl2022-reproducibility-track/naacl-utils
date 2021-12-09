@@ -81,6 +81,9 @@ jobs:
           pip freeze
 
       - name: ${{ matrix.task.name }}
+        env:
+          BEAKER_ADMIN_TOKEN: ${{ secrets.BEAKER_ADMIN_TOKEN }}
+          BEAKER_USER_TOKEN: ${{ secrets.BEAKER_USER_TOKEN }}
         run: |
           ${{ matrix.task.run }}
 
