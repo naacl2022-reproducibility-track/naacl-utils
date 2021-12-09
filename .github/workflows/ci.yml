@@ -39,11 +39,14 @@ jobs:
             run: |
               mypy .
 
-          - name: Test
-            run: |
+        include:
+          - python: 3.7
+            os: ubuntu-latest
+            task:
+              name: Test
+              run: |
               pytest -v --color=yes tests/
 
-        include:
           - python: 3.7
             os: ubuntu-latest
             task:
