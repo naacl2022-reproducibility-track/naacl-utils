@@ -14,7 +14,7 @@ DOCKER_IMAGE_NAME = "nvidia/cuda:11.0-base"
 DOCKER_AVAILABLE = True
 
 try:
-    docker.from_env()
+    docker.from_env().images.pull("hello-world")
 except docker.errors.DockerException:
     DOCKER_AVAILABLE = False
 
