@@ -41,6 +41,7 @@ def main(log_level: Optional[str] = None):
             "https://api.github.com/repos/naacl2022-reproducibility-track/naacl-utils/releases/latest",
             timeout=1,
         )
+        response.raise_for_status()
         latest_version = packaging.version.parse(response.json()["tag_name"])
         if latest_version > packaging.version.parse(VERSION):
             click.secho(
