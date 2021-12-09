@@ -11,6 +11,12 @@ from naacl_utils.__main__ import main
 from naacl_utils.version import VERSION
 
 DOCKER_IMAGE_NAME = "nvidia/cuda:11.0-base"
+DOCKER_AVAILABLE = True
+
+try:
+    docker.from_env()
+except docker.errors.DockerException:
+    DOCKER_AVAILABLE = False
 
 
 @pytest.fixture(scope="function")
@@ -44,6 +50,14 @@ def test_version(run_dir):
     assert VERSION in result.stdout
 
 
+def test_setup(run_dir, beaker_token):
+    runner = CliRunner()
+    result = runner.invoke(main, ["setup"], input=beaker_token)
+    assert result.exception is None
+    assert "Setup complete" in result.output
+
+
+@pytest.mark.skipif(not DOCKER_AVAILABLE, reason="Docker required")
 def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
     runner = CliRunner()
 

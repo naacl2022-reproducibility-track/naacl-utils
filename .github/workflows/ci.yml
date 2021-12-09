@@ -31,21 +31,24 @@ jobs:
         python: [3.7]
         os: [ubuntu-latest, windows-latest, macos-latest]
         task:
-          - name: Lint
+          - name: Test
             run: |
-              flake8 .
-
-          - name: Type check
-            run: |
-              mypy .
+              pytest -v --color=yes tests/
 
         include:
           - python: 3.7
             os: ubuntu-latest
             task:
-              name: Test
+              name: Lint
               run: |
-                pytest -v --color=yes tests/
+                flake8 .
+
+          - python: 3.7
+            os: ubuntu-latest
+            task:
+              name: Type check
+              run: |
+                mypy .
 
           - python: 3.7
             os: ubuntu-latest
