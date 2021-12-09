@@ -10,11 +10,11 @@ from click.testing import CliRunner
 from naacl_utils.__main__ import main
 from naacl_utils.version import VERSION
 
-DOCKER_IMAGE_NAME = "nvidia/cuda:11.0-base"
+DOCKER_IMAGE_NAME = "hello-world"
 DOCKER_AVAILABLE = True
 
 try:
-    docker.from_env().images.pull("hello-world")
+    docker.from_env()
 except docker.errors.DockerException:
     DOCKER_AVAILABLE = False
 
