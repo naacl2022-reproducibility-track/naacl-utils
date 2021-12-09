@@ -1,4 +1,4 @@
-requests>=2.26,<2.3
+requests>=2.26,<2.27
 packaging
 beaker-py==0.2.3
 click>=8.0,<8.1
