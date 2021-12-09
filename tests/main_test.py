@@ -67,7 +67,7 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
     assert "Setup complete" in result.output
 
     # submit
-    result = runner.invoke(main, ["submit", docker_image, run_name, "--cmd='nvidia-smi'"])
+    result = runner.invoke(main, ["submit", docker_image, run_name])
     assert result.exception is None
     assert "See progress at" in result.output
 
