@@ -31,19 +31,25 @@ jobs:
         python: [3.7]
         os: [ubuntu-latest, windows-latest, macos-latest]
         task:
-          - name: Lint
-            run: |
-              flake8 .
-
-          - name: Type check
-            run: |
-              mypy .
-
           - name: Test
             run: |
               pytest -v --color=yes tests/
 
         include:
+          - python: 3.7
+            os: ubuntu-latest
+            task:
+              name: Lint
+              run: |
+                flake8 .
+
+          - python: 3.7
+            os: ubuntu-latest
+            task:
+              name: Type check
+              run: |
+                mypy .
+
           - python: 3.7
             os: ubuntu-latest
             task:
@@ -81,6 +87,9 @@ jobs:
           pip freeze
 
       - name: ${{ matrix.task.name }}
+        env:
+          BEAKER_ADMIN_TOKEN: ${{ secrets.BEAKER_ADMIN_TOKEN }}
+          BEAKER_USER_TOKEN: ${{ secrets.BEAKER_USER_TOKEN }}
         run: |
           ${{ matrix.task.run }}
 
