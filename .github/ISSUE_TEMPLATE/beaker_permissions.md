@@ -13,7 +13,5 @@ Then please fill in your Beaker username and other information below.
 -->
 
 Hi, please add me to the NAACL Beaker organization.
-
-My Beaker username is:
-
-The title of my paper is:
+- My Beaker username is:
+- The title of my paper is:
