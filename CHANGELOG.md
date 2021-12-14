@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fixed bug where new version of local image would not be uploaded to Beaker.
+
 ## [v0.1.3](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.1.3) - 2021-12-09
 
 ### Added

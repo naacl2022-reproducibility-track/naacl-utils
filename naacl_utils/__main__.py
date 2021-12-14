@@ -124,15 +124,19 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
     beaker.config.default_org = BEAKER_ORG
     beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
 
-    # Check if image exists on Beaker and create it if it doesn't.
+    # Check if image exists on Beaker, delete it if it does so we can re-upload the latest local one.
     beaker_image = image.replace(":", "-").replace("/", "-")
     try:
         image_data = beaker.get_image(f"{beaker.user}/{beaker_image}")
+        beaker.delete_image(image_data["id"])
     except ImageNotFound:
-        image_data = beaker.create_image(
-            name=beaker_image,
-            image_tag=image,
-        )
+        pass
+
+    # (Re-)create image.
+    image_data = beaker.create_image(
+        name=beaker_image,
+        image_tag=image,
+    )
 
     # Submit experiment.
     try:
