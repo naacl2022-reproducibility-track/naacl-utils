@@ -4,6 +4,7 @@ from typing import Optional
 import click
 import packaging.version
 import requests
+from beaker import Beaker, ConfigurationError, ExperimentConflict, ImageNotFound
 from click.parser import split_arg_string
 from click_help_colors import HelpColorsCommand, HelpColorsGroup
 from requests.exceptions import HTTPError
@@ -12,6 +13,39 @@ from .version import VERSION
 
 BEAKER_ORG = "NAACL"
 BEAKER_CLUSTER = "NAACL/server"
+BEAKER_ADDRESS = "https://beaker.org"
+
+
+def get_beaker_client(token: Optional[str] = None) -> Beaker:
+    if token is not None:
+        beaker = Beaker.from_env(user_token=token)
+    else:
+        beaker = Beaker.from_env()
+    beaker.config.agent_address = BEAKER_ADDRESS
+    beaker.config.default_org = BEAKER_ORG
+    beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
+    return beaker
+
+
+def check_beaker_permissions(beaker: Beaker):
+    assert beaker.config.default_workspace is not None
+    try:
+        # This will fail with a 403 if user doesn't have access to the NAACL organization.
+        beaker.ensure_workspace(beaker.config.default_workspace)
+    except HTTPError as exc:
+        if exc.response.status_code == 403:
+            raise click.ClickException(
+                "Unable to access NAACL organization on Beaker. Did you complete all of the steps here?\n"
+                + click.style(
+                    "https://github.com/naacl2022-reproducibility-track/naacl-utils#prerequisites",
+                    fg="yellow",
+                )
+                + "\n\nIf so, and you're still seeing this error, please submit a bug report here:\n"
+                + click.style(
+                    "https://github.com/naacl2022-reproducibility-track/naacl-utils/issues/new",
+                    fg="yellow",
+                ),
+            )
 
 
 @click.group(
@@ -61,16 +95,18 @@ def main(log_level: Optional[str] = None):
     help_headers_color="yellow",
     context_settings={"max_content_width": 115},
 )
-def setup():
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Force the setup steps again to overwrite existing configuration.",
+)
+def setup(force: bool = False):
     """
     One-time setup.
     """
-    from beaker import Beaker, Config, ConfigurationError
 
-    # Beaker setup.
-    try:
-        beaker = Beaker.from_env()
-    except ConfigurationError:
+    def setup_beaker() -> Beaker:
         # Tell user to create Beaker account and get user token.
         click.echo(
             f"Please go to {click.style('https://beaker.org', fg='yellow')} and create an account.\n"
@@ -79,10 +115,21 @@ def setup():
         beaker_token = click.prompt("User token", type=str)
 
         # Create and save Beaker config.
-        config = Config(user_token=beaker_token, default_org=BEAKER_ORG)
-        beaker = Beaker(config)
-        beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
+        beaker = get_beaker_client(token=beaker_token)
         beaker.config.save()
+
+        return beaker
+
+    beaker: Beaker
+    if force:
+        beaker = setup_beaker()
+    else:
+        try:
+            beaker = get_beaker_client()
+        except ConfigurationError:
+            beaker = setup_beaker()
+
+    check_beaker_permissions(beaker)
 
     click.secho("\N{check mark} Setup complete", fg="green")
 
@@ -114,16 +161,14 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
         naacl-utils submit hello-world run-1
 
     """
-    from beaker import Beaker, ConfigurationError, ExperimentConflict, ImageNotFound
-
     try:
-        beaker = Beaker.from_env()
+        beaker = get_beaker_client()
     except ConfigurationError:
         raise click.ClickException(
-            "Failed to initialize Beaker client, did you forget to run the 'naacl-utils setup' command?",
+            "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
         )
-    beaker.config.default_org = BEAKER_ORG
-    beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
+
+    check_beaker_permissions(beaker)
 
     beaker_image = image.replace(":", "-").replace("/", "-") + "-" + str(uuid.uuid4())[:4]
     try:
