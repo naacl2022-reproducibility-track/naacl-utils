@@ -44,6 +44,11 @@ docker pull nvidia/cuda:11.0-base
 naacl-utils submit nvidia/cuda:11.0-base cuda-test-run-1 --cmd nvidia-smi
 ```
 
+The first argument to `naacl-utils submit` is the name of your Docker image (e.g. "nvidia/cuda:11.0-base"), and the second is an arbitrary unique name you assign to your submission ("cuda-test-run-1").
+If you make another submission you'll have to use a different name.
+
+The `--cmd` parameter is optional. You can use this to override the `CMD` of your Docker image. Similarly there is also the `--entrypoint` parameter for overriding the `ENTRYPOINT` of your image.
+
 If the submission was successful it will print out a link on Beaker.org that you can follow to track the progress of your submission and view the logs.
 If the run fails for some reason you can use the logs to debug it and then resubmit when you're ready.
 
