@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added `--force` flag to `setup` command to redo setup.
+
+### Changed
+
+- Various changes to make the CLI more robust to edge cases.
+
 ## [v0.1.4](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.1.4) - 2021-12-14
 
 ### Fixed
