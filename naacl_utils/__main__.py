@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 import click
@@ -124,10 +125,13 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
     beaker.config.default_org = BEAKER_ORG
     beaker.config.default_workspace = f"{BEAKER_ORG}/{beaker.user}"
 
-    # Check if image exists on Beaker, delete it if it does so we can re-upload the latest local one.
-    beaker_image = image.replace(":", "-").replace("/", "-")
+    beaker_image = image.replace(":", "-").replace("/", "-") + "-" + str(uuid.uuid4())[:4]
     try:
+        # Make sure an image with this name doesn't exist on Beaker.
+        # It's unlikely because we add a random sequence of characters to the end of the name,
+        # but possible.
         image_data = beaker.get_image(f"{beaker.user}/{beaker_image}")
+        # If it does exist, we'll delete it.
         beaker.delete_image(image_data["id"])
     except ImageNotFound:
         pass
