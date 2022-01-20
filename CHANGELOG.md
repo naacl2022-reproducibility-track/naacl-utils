@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added `naacl-utils verify` command.
+
 ## [v0.1.5](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.1.5) - 2021-12-14
 
 ### Added
