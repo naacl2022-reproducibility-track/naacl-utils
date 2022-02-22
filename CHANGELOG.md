@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- `naacl-utils verify` now takes a path for the expected output, instead of a string.
+
 ## [v0.2.0](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.2.0) - 2022-01-19
 
 ### Added
