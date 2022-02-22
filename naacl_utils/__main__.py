@@ -1,3 +1,4 @@
+import sys
 import uuid
 from typing import Optional
 
@@ -232,8 +233,8 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
     context_settings={"max_content_width": 115},
 )
 @click.argument("run_name", type=str)
-@click.argument("expected_output", type=str)
-def verify(run_name: str, expected_output: str):
+@click.argument("expected_output_file", type=click.File("r"), default=sys.stdin)
+def verify(run_name: str, expected_output_file):
     """
     Verify the results of a run against the expected output.
     """
@@ -262,7 +263,8 @@ def verify(run_name: str, expected_output: str):
     log_lines = [line[line.find(" ") + 1 :] for line in logs.split("\n")]
     logs = "\n".join(log_lines)
 
-    expected_output = expected_output.replace("\\n", "\n")
+    with expected_output_file:
+        expected_output = expected_output_file.read()
 
     if expected_output in logs:
         click.echo(click.style("\N{check mark} Results successfully verified", fg="green"))
