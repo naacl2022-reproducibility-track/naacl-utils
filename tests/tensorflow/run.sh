@@ -53,6 +53,7 @@ _verify() {
   inp=$1
   while read tag submission; do
     echo "Verifying ${tag} with submission ${submission}"
+    naacl-utils verify ${submission} expected.txt
   done < ${inp}
 }
 
