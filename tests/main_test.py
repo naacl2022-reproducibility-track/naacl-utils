@@ -83,11 +83,10 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
             assert "Results successfully verified" in result.output
             assert "Done!" in result.output
             break
-        elif isinstance(
-            result.exception, NaaclUtilsError
-        ) and "Can only verify submissions that have completed" in str(NaaclUtilsError):
-            continue
-        elif isinstance(result.exception, ExperimentNotFound):
+        elif isinstance(result.exception, NaaclUtilsError) and (
+            "Can only verify submissions that have completed" in str(result.exception)
+            or "Could not find a run" in str(result.exception)
+        ):
             continue
         else:
             raise result.exception
