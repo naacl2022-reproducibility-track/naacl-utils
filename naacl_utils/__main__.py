@@ -94,6 +94,15 @@ def check_beaker_permissions(beaker: Beaker):
             )
 
 
+def validate_run_name(run_name: str):
+    if not run_name.replace("-", "").isalnum():
+        raise NaaclUtilsError(
+            "Invalid run name '{run_name}'. Names can only contain letters, digits, and dashes."
+        )
+    if len(run_name) > 100:
+        raise NaaclUtilsError("Run name is too long!")
+
+
 @click.group(
     cls=HelpColorsGroup,
     help_options_color="green",
@@ -222,6 +231,7 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
             "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
         )
 
+    validate_run_name(run_name)
     check_beaker_permissions(beaker)
 
     beaker_image = image.replace(":", "-").replace("/", "-") + "-" + str(uuid.uuid4())[:4]
@@ -295,8 +305,10 @@ def verify(run_name: str, expected_output_file):
             "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
         )
 
+    validate_run_name(run_name)
     check_beaker_permissions(beaker)
 
+    # Find the right experiment.
     exp_id: str
     experiments = beaker.list_experiments()
     for experiment in experiments:
@@ -307,6 +319,8 @@ def verify(run_name: str, expected_output_file):
         raise NaaclUtilsError(
             f"Could not find a run with the name '{run_name}'. Are you sure that's the correct name?"
         )
+
+    # Download the logs.
     logs = "".join((chunk.decode() for chunk in beaker.get_logs_for_experiment(exp_id)))
 
     # Beaker adds the date and time to log lines, so we remove those first.
@@ -319,6 +333,12 @@ def verify(run_name: str, expected_output_file):
 
     if expected_output in logs:
         print("[green]\N{check mark} Results successfully verified[/]")
+        print("Uploading results...")
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".log") as tmpfile:
+            tmpfile.write(expected_output)
+            tmpfile.seek(0)
+            beaker.create_dataset(run_name, tmpfile.name, target="out.log", force=True)
+        print("[green]\N{check mark} Done![/]")
         return
 
     if max(len(log_lines), len(expected_output_lines)) < 500:
