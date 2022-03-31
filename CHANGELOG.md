@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.4.0](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.4.0) - 2022-03-31
+
 ### Changed
 
 - A diff of the actual vs. expected logs is now printed when there's a mismatch with `naacl-utils verify`.
