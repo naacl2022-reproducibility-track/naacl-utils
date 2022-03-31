@@ -1,5 +1,7 @@
 import os
 import subprocess
+import time
+import uuid
 from pathlib import Path
 
 import docker
@@ -7,7 +9,7 @@ import pytest
 from beaker import Config
 from click.testing import CliRunner
 
-from naacl_utils.__main__ import main
+from naacl_utils.__main__ import NaaclUtilsError, main
 from naacl_utils.version import VERSION
 
 DOCKER_IMAGE_NAME = "hello-world"
@@ -27,8 +29,6 @@ def run_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture(scope="function")
 def run_name() -> str:
-    import uuid
-
     return "test-" + str(uuid.uuid4())[:8]
 
 
@@ -70,6 +70,25 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
     result = runner.invoke(main, ["submit", docker_image, run_name])
     assert result.exception is None
     assert "See progress at" in result.output
+
+    # verify
+    with open(run_dir / "out.log", "wt") as output_file:
+        output_file.write("Hello from Docker!")
+    for _ in range(10):
+        time.sleep(2)
+        result = runner.invoke(main, ["verify", run_name, str(run_dir / "out.log")])
+        if result.exception is None:
+            assert "Results successfully verified" in result.output
+            assert "Done!" in result.output
+            break
+        elif isinstance(result.exception, NaaclUtilsError) and (
+            "Can only verify submissions that have completed" in str(result.exception)
+        ):
+            continue
+        else:
+            raise result.exception
+    else:
+        assert False, f"verify not successful for {run_name}"
 
 
 def test_submit_without_setup(run_dir, beaker_token):

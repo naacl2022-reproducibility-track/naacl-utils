@@ -9,7 +9,13 @@ import click
 import packaging.version
 import requests
 import rich
-from beaker import Beaker, ConfigurationError, ExperimentConflict, ImageNotFound
+from beaker import (
+    Beaker,
+    ConfigurationError,
+    ExperimentConflict,
+    ExperimentNotFound,
+    ImageNotFound,
+)
 from click.parser import split_arg_string
 from click_help_colors import HelpColorsCommand, HelpColorsGroup
 from requests.exceptions import HTTPError
@@ -65,6 +71,7 @@ sys.excepthook = excepthook
 
 
 def get_beaker_client(token: Optional[str] = None) -> Beaker:
+    logger.debug("Initializing beaker client")
     if token is not None:
         beaker = Beaker.from_env(user_token=token)
     else:
@@ -80,6 +87,7 @@ def insert_link(link: str) -> str:
 
 
 def check_beaker_permissions(beaker: Beaker):
+    logger.debug("Checking beaker permissions")
     assert beaker.config.default_workspace is not None
     try:
         # This will fail with a 403 if user doesn't have access to the NAACL organization.
@@ -92,6 +100,15 @@ def check_beaker_permissions(beaker: Beaker):
                 "If so, and you're still seeing this error, please submit a bug report here:\n\n"
                 f"  {insert_link(BUG_REPORT_URL)}"
             )
+
+
+def validate_run_name(run_name: str):
+    if not run_name.replace("-", "").isalnum():
+        raise NaaclUtilsError(
+            f"Invalid run name '{run_name}'. Names can only contain letters, digits, and dashes."
+        )
+    if len(run_name) > 100:
+        raise NaaclUtilsError("Run name is too long!")
 
 
 @click.group(
@@ -222,20 +239,24 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
             "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
         )
 
+    validate_run_name(run_name)
     check_beaker_permissions(beaker)
 
     beaker_image = image.replace(":", "-").replace("/", "-") + "-" + str(uuid.uuid4())[:4]
     try:
+        logger.debug("Checking if image already exists")
         # Make sure an image with this name doesn't exist on Beaker.
         # It's unlikely because we add a random sequence of characters to the end of the name,
         # but possible.
         image_data = beaker.get_image(f"{beaker.user}/{beaker_image}")
         # If it does exist, we'll delete it.
+        logger.debug("Removing existing image")
         beaker.delete_image(image_data["id"])
     except ImageNotFound:
         pass
 
     # (Re-)create image.
+    logger.debug("Creating image")
     image_data = beaker.create_image(
         name=beaker_image,
         image_tag=image,
@@ -243,6 +264,7 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
 
     # Submit experiment.
     try:
+        logger.debug("Submitting experiment")
         experiment_data = beaker.create_experiment(
             run_name,
             {
@@ -295,18 +317,24 @@ def verify(run_name: str, expected_output_file):
             "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
         )
 
+    validate_run_name(run_name)
     check_beaker_permissions(beaker)
 
-    exp_id: str
-    experiments = beaker.list_experiments()
-    for experiment in experiments:
-        if experiment["name"] == run_name or experiment["fullName"] == run_name:
-            exp_id = experiment["id"]
-            break
-    else:
+    # Find the right experiment.
+    try:
+        experiment = beaker.get_experiment(f"{beaker.user}/{run_name}")
+    except ExperimentNotFound:
         raise NaaclUtilsError(
             f"Could not find a run with the name '{run_name}'. Are you sure that's the correct name?"
         )
+
+    # Make sure the experiment finished successfully.
+    if not experiment.get("jobs") or experiment["jobs"][0]["status"].get("exitCode") != 0:
+        raise NaaclUtilsError("Can only verify submissions that have completed successfully.")
+
+    exp_id: str = experiment["id"]
+
+    # Download the logs.
     logs = "".join((chunk.decode() for chunk in beaker.get_logs_for_experiment(exp_id)))
 
     # Beaker adds the date and time to log lines, so we remove those first.
@@ -319,6 +347,12 @@ def verify(run_name: str, expected_output_file):
 
     if expected_output in logs:
         print("[green]\N{check mark} Results successfully verified[/]")
+        print("Uploading results...")
+        with tempfile.NamedTemporaryFile(mode="w+t", suffix=".log") as tmpfile:
+            tmpfile.write(expected_output)
+            tmpfile.seek(0)
+            beaker.create_dataset(run_name, tmpfile.name, target="out.log", force=True)
+        print("[green]\N{check mark} Done![/]")
         return
 
     if max(len(log_lines), len(expected_output_lines)) < 500:
