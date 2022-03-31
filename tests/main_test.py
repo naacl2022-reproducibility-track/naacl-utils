@@ -76,7 +76,7 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
     with open(run_dir / "out.log", "wt") as output_file:
         output_file.write("Hello from Docker!")
     for _ in range(10):
-        time.sleep(2)
+        time.sleep(5)
         result = runner.invoke(main, ["verify", run_name, str(run_dir / "out.log")])
         if result.exception is None:
             assert "Results successfully verified" in result.output

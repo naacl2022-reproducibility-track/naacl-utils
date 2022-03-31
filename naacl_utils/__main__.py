@@ -103,7 +103,7 @@ def check_beaker_permissions(beaker: Beaker):
 def validate_run_name(run_name: str):
     if not run_name.replace("-", "").isalnum():
         raise NaaclUtilsError(
-            "Invalid run name '{run_name}'. Names can only contain letters, digits, and dashes."
+            f"Invalid run name '{run_name}'. Names can only contain letters, digits, and dashes."
         )
     if len(run_name) > 100:
         raise NaaclUtilsError("Run name is too long!")
