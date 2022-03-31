@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import uuid
 from pathlib import Path
 
 import docker
@@ -28,8 +29,6 @@ def run_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture(scope="function")
 def run_name() -> str:
-    import uuid
-
     return "test-" + str(uuid.uuid4())[:8]
 
 
