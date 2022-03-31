@@ -6,6 +6,7 @@ from pathlib import Path
 import docker
 import pytest
 from beaker import Config
+from beaker.exceptions import ExperimentNotFound
 from click.testing import CliRunner
 
 from naacl_utils.__main__ import NaaclUtilsError, main
@@ -76,7 +77,7 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
     with open(run_dir / "out.log", "wt") as output_file:
         output_file.write("Hello from Docker!")
     for _ in range(10):
-        time.sleep(1)
+        time.sleep(2)
         result = runner.invoke(main, ["verify", run_name, str(run_dir / "out.log")])
         if result.exception is None:
             assert "Results successfully verified" in result.output
@@ -85,6 +86,8 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
         elif isinstance(
             result.exception, NaaclUtilsError
         ) and "Can only verify submissions that have completed" in str(NaaclUtilsError):
+            continue
+        elif isinstance(result.exception, ExperimentNotFound):
             continue
         else:
             raise result.exception
