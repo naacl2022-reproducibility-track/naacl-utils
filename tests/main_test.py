@@ -86,6 +86,8 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
             result.exception, NaaclUtilsError
         ) and "Can only verify submissions that have completed" in str(NaaclUtilsError):
             continue
+        else:
+            raise result.exception
     else:
         assert False, "verify not successful"
 
