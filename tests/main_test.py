@@ -6,7 +6,6 @@ from pathlib import Path
 import docker
 import pytest
 from beaker import Config
-from beaker.exceptions import ExperimentNotFound
 from click.testing import CliRunner
 
 from naacl_utils.__main__ import NaaclUtilsError, main
@@ -91,7 +90,7 @@ def test_setup_and_submit(run_dir, beaker_token, docker_image, run_name):
         else:
             raise result.exception
     else:
-        assert False, "verify not successful"
+        assert False, f"verify not successful for {run_name}"
 
 
 def test_submit_without_setup(run_dir, beaker_token):
