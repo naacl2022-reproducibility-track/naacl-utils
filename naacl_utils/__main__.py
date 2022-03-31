@@ -71,6 +71,7 @@ sys.excepthook = excepthook
 
 
 def get_beaker_client(token: Optional[str] = None) -> Beaker:
+    logger.debug("Initializing beaker client")
     if token is not None:
         beaker = Beaker.from_env(user_token=token)
     else:
@@ -86,6 +87,7 @@ def insert_link(link: str) -> str:
 
 
 def check_beaker_permissions(beaker: Beaker):
+    logger.debug("Checking beaker permissions")
     assert beaker.config.default_workspace is not None
     try:
         # This will fail with a 403 if user doesn't have access to the NAACL organization.
@@ -242,16 +244,19 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
 
     beaker_image = image.replace(":", "-").replace("/", "-") + "-" + str(uuid.uuid4())[:4]
     try:
+        logger.debug("Checking if image already exists")
         # Make sure an image with this name doesn't exist on Beaker.
         # It's unlikely because we add a random sequence of characters to the end of the name,
         # but possible.
         image_data = beaker.get_image(f"{beaker.user}/{beaker_image}")
         # If it does exist, we'll delete it.
+        logger.debug("Removing existing image")
         beaker.delete_image(image_data["id"])
     except ImageNotFound:
         pass
 
     # (Re-)create image.
+    logger.debug("Creating image")
     image_data = beaker.create_image(
         name=beaker_image,
         image_tag=image,
@@ -259,6 +264,7 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
 
     # Submit experiment.
     try:
+        logger.debug("Submitting experiment")
         experiment_data = beaker.create_experiment(
             run_name,
             {
