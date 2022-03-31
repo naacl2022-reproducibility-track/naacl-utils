@@ -9,7 +9,13 @@ import click
 import packaging.version
 import requests
 import rich
-from beaker import Beaker, ConfigurationError, ExperimentConflict, ImageNotFound
+from beaker import (
+    Beaker,
+    ConfigurationError,
+    ExperimentConflict,
+    ExperimentNotFound,
+    ImageNotFound,
+)
 from click.parser import split_arg_string
 from click_help_colors import HelpColorsCommand, HelpColorsGroup
 from requests.exceptions import HTTPError
@@ -309,16 +315,18 @@ def verify(run_name: str, expected_output_file):
     check_beaker_permissions(beaker)
 
     # Find the right experiment.
-    exp_id: str
-    experiments = beaker.list_experiments()
-    for experiment in experiments:
-        if experiment["name"] == run_name or experiment["fullName"] == run_name:
-            exp_id = experiment["id"]
-            break
-    else:
+    try:
+        experiment = beaker.get_experiment(f"{beaker.user}/{run_name}")
+    except ExperimentNotFound:
         raise NaaclUtilsError(
             f"Could not find a run with the name '{run_name}'. Are you sure that's the correct name?"
         )
+
+    # Make sure the experiment finished successfully.
+    if not experiment.get("jobs") or experiment["jobs"][0]["status"].get("exitCode") != 0:
+        raise NaaclUtilsError("Can only verify submissions that have completed successfully.")
+
+    exp_id: str = experiment["id"]
 
     # Download the logs.
     logs = "".join((chunk.decode() for chunk in beaker.get_logs_for_experiment(exp_id)))
