@@ -1,3 +1,4 @@
+import sys
 import uuid
 from typing import Optional
 
@@ -131,7 +132,10 @@ def setup(force: bool = False):
 
     check_beaker_permissions(beaker)
 
-    click.secho("\N{check mark} Setup complete", fg="green")
+    click.echo(
+        click.style("\N{check mark} Setup complete, you are authenticated as ", fg="green")
+        + click.style(f"'{beaker.user}'", fg="green", bold=True)
+    )
 
 
 @main.command(
@@ -220,6 +224,55 @@ def submit(image: str, run_name: str, entrypoint: Optional[str] = None, cmd: Opt
         f"Experiment {click.style(experiment_id, fg='blue')} submitted.\n"
         f"See progress at https://beaker.org/ex/{experiment_id}"
     )
+
+
+@main.command(
+    cls=HelpColorsCommand,
+    help_options_color="green",
+    help_headers_color="yellow",
+    context_settings={"max_content_width": 115},
+)
+@click.argument("run_name", type=str)
+@click.argument("expected_output_file", type=click.File("r"), default=sys.stdin)
+def verify(run_name: str, expected_output_file):
+    """
+    Verify the results of a run against the expected output.
+    """
+    try:
+        beaker = get_beaker_client()
+    except ConfigurationError:
+        raise click.ClickException(
+            "Beaker client not properly configured, did you forget to run the 'naacl-utils setup' command?",
+        )
+
+    check_beaker_permissions(beaker)
+
+    exp_id: str
+    experiments = beaker.list_experiments()
+    for experiment in experiments:
+        if experiment["name"] == run_name or experiment["fullName"] == run_name:
+            exp_id = experiment["id"]
+            break
+    else:
+        raise click.ClickException(
+            f"Could not find a run with the name '{click.style(run_name, fg='red')}'. Are you sure that's the correct name?"
+        )
+    logs = "".join((chunk.decode() for chunk in beaker.get_logs_for_experiment(exp_id)))
+
+    # Beaker adds the date and time to log lines, so we remove those first.
+    log_lines = [line[line.find(" ") + 1 :] for line in logs.split("\n")]
+    logs = "\n".join(log_lines)
+
+    with expected_output_file:
+        expected_output = expected_output_file.read()
+
+    if expected_output in logs:
+        click.echo(click.style("\N{check mark} Results successfully verified", fg="green"))
+    else:
+        raise click.ClickException(
+            "Expected output not found in logs.\n"
+            "You can see the logs at " + click.style(f"https://beaker.org/ex/{exp_id}", fg="yellow")
+        )
 
 
 if __name__ == "__main__":
