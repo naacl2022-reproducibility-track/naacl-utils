@@ -77,4 +77,4 @@ def test_submit_without_setup(run_dir, beaker_token):
     runner = CliRunner()
     result = runner.invoke(main, ["submit", "hello-world", "run-1"], input=beaker_token)
     assert result.exception is not None
-    assert "did you forget to run the 'naacl-utils setup' command" in result.output
+    assert "did you forget to run the 'naacl-utils setup' command" in str(result.exception)
