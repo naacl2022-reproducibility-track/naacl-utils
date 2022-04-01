@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.4.1](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.4.1) - 2022-04-01
+
 ### Fixed
 
 - Caught degenerate case where expected output file might be empty or only contain empty lines.
