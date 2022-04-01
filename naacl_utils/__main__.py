@@ -3,7 +3,7 @@ import logging
 import sys
 import tempfile
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 import click
 import packaging.version
@@ -109,6 +109,14 @@ def validate_run_name(run_name: str):
         )
     if len(run_name) > 100:
         raise NaaclUtilsError("Run name is too long!")
+
+
+def validate_expected_output(expected_output_lines: List[str]):
+    for line in expected_output_lines:
+        if line:
+            break
+    else:
+        raise NaaclUtilsError("Expected output file has no content")
 
 
 @click.group(
@@ -345,7 +353,11 @@ def verify(run_name: str, expected_output_file):
         expected_output_lines = [line.rstrip() for line in expected_output_file.readlines()]
         expected_output = "\n".join(expected_output_lines)
 
+    # Make sure the expected output isn't empty or something.
+    validate_expected_output(expected_output_lines)
+
     if expected_output in logs:
+        # All good! Upload the expected output to Beaker datasets.
         print("[green]\N{check mark} Results successfully verified[/]")
         print("Uploading results...")
         with tempfile.NamedTemporaryFile(mode="w+t", suffix=".log") as tmpfile:
@@ -353,28 +365,29 @@ def verify(run_name: str, expected_output_file):
             tmpfile.seek(0)
             beaker.create_dataset(run_name, tmpfile.name, target="out.log", force=True)
         print("[green]\N{check mark} Done![/]")
-        return
-
-    if max(len(log_lines), len(expected_output_lines)) < 500:
-        # Print a diff
-        diff = Syntax(
-            "\n".join(
-                list(
-                    difflib.unified_diff(
-                        log_lines, expected_output_lines, fromfile="Actual", tofile="Expected"
+    else:
+        # Print a diff if the logs aren't too long.
+        if max(len(log_lines), len(expected_output_lines)) < 500:
+            diff = Syntax(
+                "\n".join(
+                    list(
+                        difflib.unified_diff(
+                            log_lines, expected_output_lines, fromfile="Actual", tofile="Expected"
+                        )
                     )
-                )
-            ),
-            "diff",
-        )
-        print(Padding(diff, 1))
-
-    log_file = tempfile.NamedTemporaryFile(mode="w+t", suffix=".log", delete=False)
-    log_file.write(logs)
-    raise NaaclUtilsError(
-        f"Expected output not found in logs.\n"
-        f"You can view the full logs here:\n[yellow]{log_file.name}[/]"
-    )
+                ),
+                "diff",
+            )
+            print(Padding(diff, 1))
+            raise NaaclUtilsError("Expected output not found in logs.")
+        else:
+            # Otherwise just write the actual logs to a file so the user can inspect them further.
+            log_file = tempfile.NamedTemporaryFile(mode="w+t", suffix=".log", delete=False)
+            log_file.write(logs)
+            raise NaaclUtilsError(
+                f"Expected output not found in logs.\n"
+                f"You can view the full logs here:\n[yellow]{log_file.name}[/]"
+            )
 
 
 if __name__ == "__main__":
