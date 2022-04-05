@@ -3,4 +3,4 @@ packaging
 beaker-py==0.2.8
 click>=8.0,<8.1
 click-help-colors>=0.9.1,<0.10
-rich>=12.0,<12.1
+rich>=12.0,<12.3
