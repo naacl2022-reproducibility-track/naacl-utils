@@ -1,0 +1,28 @@
+name: Beaker NAACL
+
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: The username of the account to add
+        required: true
+
+jobs:
+  add_member:
+    name: Add member
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Add
+        uses: allenai/beaker-action@v0.2.0
+        with:
+          token: ${{ secrets.BEAKER_ADMIN_TOKEN }}
+          command: organization
+          args: member add NAACL ${{ github.event.inputs.username }}
+
+      - name: Confirm
+        uses: allenai/beaker-action@v0.2.0
+        with:
+          token: ${{ secrets.BEAKER_ADMIN_TOKEN }}
+          command: organization
+          args: member list NAACL
