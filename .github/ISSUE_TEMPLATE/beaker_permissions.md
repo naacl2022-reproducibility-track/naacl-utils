@@ -10,6 +10,10 @@ assignees: epwalsh, danieldeutsch
 <!--
 If you haven't already done so, create an account on https://beaker.org.
 Then please fill in your Beaker username and other information below.
+
+The track organizers who can add you to the NAACL Beaker organization
+are located in the US, so please be patient if you submit your request
+outside of US working hours.
 -->
 
 Hi, please add me to the NAACL Beaker organization.
