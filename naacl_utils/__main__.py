@@ -343,7 +343,9 @@ def verify(run_name: str, expected_output_file):
     exp_id: str = experiment["id"]
 
     # Download the logs.
-    logs = "".join((chunk.decode() for chunk in beaker.get_logs_for_experiment(exp_id)))
+    logs = "".join(
+        (chunk.decode(errors="ignore") for chunk in beaker.get_logs_for_experiment(exp_id))
+    )
 
     # Beaker adds the date and time to log lines, so we remove those first.
     log_lines = [line[line.find(" ") + 1 :].rstrip() for line in logs.split("\n")]
