@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v0.4.2](https://github.com/naacl2022-reproducibility-track/naacl-utils/releases/tag/v0.4.2) - 2022-05-10
+
 ### Fixed
 
 - Fixed bug caused when certain bytes in the logs can't be decoded.
