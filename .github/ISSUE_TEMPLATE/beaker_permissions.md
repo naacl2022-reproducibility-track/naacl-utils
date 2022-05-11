@@ -3,7 +3,7 @@ name: Beaker add request
 about: Request permission to join the NAACL Beaker organization
 title: 'Please add me to the NAACL Beaker organization'
 labels: 'beaker'
-assignees: epwalsh, danieldeutsch
+assignees: epwalsh, danieldeutsch, ykl7
 
 ---
 
